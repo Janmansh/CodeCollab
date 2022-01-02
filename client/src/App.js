@@ -3,9 +3,11 @@ import "./App.css";
 // import UserInputOutput from "./components/UserInputOutput";
 // import { useState } from "react";
 import CodeEditor from "./components/CodeEditor";
+import NavbarComponent from "./components/Navbar";
 function App() {
   return (
     <div className="App">
+      <NavbarComponent />
       <CodeEditor />
     </div>
   );

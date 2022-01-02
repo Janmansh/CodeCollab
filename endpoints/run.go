@@ -3,7 +3,6 @@ package endpoints
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -40,6 +39,7 @@ func RunProgram(c *gin.Context) {
 		panic(err)
 	}
 	req.Code = strconv.QuoteToASCII(req.Code)
+	req.Input = strconv.QuoteToASCII(req.Input)
 	ans := requestAPI(req.Code, language_map[req.Language], req.Input)
 
 	c.JSON(200, gin.H{
@@ -48,8 +48,7 @@ func RunProgram(c *gin.Context) {
 }
 
 func requestAPI(code string, language string, input string) string {
-	fmt.Println(input)
-	var jsonRaw = `{"clientId": "e67139a8317554984daafaa1fce69d93", "clientSecret": "4a231fff8bf76c4f40e427ca7551cf5c96d67ab61d835307f478c78b7ff70ec4", "script": ` + code + `, "language": "` + language + `", "stdin": "` + input + `"}`
+	var jsonRaw = `{"clientId": "e67139a8317554984daafaa1fce69d93", "clientSecret": "4a231fff8bf76c4f40e427ca7551cf5c96d67ab61d835307f478c78b7ff70ec4", "script": ` + code + `, "language": "` + language + `", "stdin": ` + input + `}`
 	var jsonStr = []byte(jsonRaw)
 
 	url := "https://api.jdoodle.com/v1/execute"
