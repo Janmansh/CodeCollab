@@ -27,13 +27,14 @@ const Editor = (props) => {
         options={{
           lineWrapping: true,
           lint: true,
-          tabSize: 2,
+          tabSize: 4,
           mode: languageMode,
           theme: "material",
           lineNumbers: true,
           autoCloseBrackets: true,
           autoCloseTags: true,
           matchBrackets: true,
+          indentUnit: 4,
         }}
       />
     </>
