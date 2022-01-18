@@ -25,6 +25,7 @@ func CORSMiddleware() gin.HandlerFunc {
 
 func main() {
 	endpoints.AllRooms.Init()
+	endpoints.InitBroadcaster()
 
 	r := gin.Default()
 	r.Use(CORSMiddleware())
