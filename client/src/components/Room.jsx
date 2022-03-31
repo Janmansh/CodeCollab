@@ -2,8 +2,11 @@ import React from 'react';
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 
+import * as Automerge from 'automerge';
+
 import CodeEditor from "./CodeEditor";
 import NavbarComponent from "./Navbar";
+import { useState } from 'react';
 
 function Room() {
     let { roomId } = useParams();
@@ -13,6 +16,20 @@ function Room() {
     const partnerAudio = useRef();
     const peerRef = useRef();
     const webSocketRef = useRef();
+
+    const [codeC, setCodeC] = useState("");
+
+    const doc = useRef(Automerge.init());
+
+    const handleChange = (e) => {
+        setCodeC(e);
+
+        let newDoc = Automerge.change(doc.current, (doc) => {
+            doc.code = e;
+        });
+
+        doc.current = newDoc;
+    };
 
     const openMic = async () => {
         const allDevices = await navigator.mediaDevices.enumerateDevices();
@@ -70,8 +87,30 @@ function Room() {
                     console.log("Error adding ICE Candidate: ", err);
                 }
             }
+
+            if(message.changes) {
+                const ar = Uint8Array.from(message.changes.split(',').map(x => Number(x)));
+                console.log("Recieved doc: ", message.changes, ": - ", ar);
+
+                let newDoc = Automerge.load(ar);
+
+                doc.current = Automerge.merge(doc.current, newDoc);
+
+                setCodeC(doc.current.code);
+            }
         });
-    });
+
+        setInterval(sendDoc, 3000);
+
+    }, []);
+
+    const sendDoc = () => {
+        let changes = Automerge.save(doc.current)
+
+        console.log(changes);
+
+        webSocketRef.current.send(JSON.stringify({ changes: String(changes) }));
+    };
 
     const handleOffer = async (offer) => {
         console.log("Creating answer");
@@ -144,7 +183,7 @@ function Room() {
         <>
         <div>
             <NavbarComponent />
-            <CodeEditor />
+            <CodeEditor vl={codeC} hcg={handleChange}/>
         </div>
         <div>
             <audio autoPlay={true} controls={true} ref={userAudio}></audio>

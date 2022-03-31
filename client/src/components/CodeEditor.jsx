@@ -8,7 +8,7 @@ import UserInputOutput from "./UserInputOutput";
 import axios from "axios";
 
 const CodeEditor = (props) => {
-  const [code, setCode] = useState("");
+  // const [code, setCode] = useState("");
   const [codeMirrorMode, setCodeMirrorMode] = useState("clike");
   const [codeLanguage, setCodeLanguage] = useState("C++");
   const [userOutput, setuserOutput] = useState("");
@@ -27,7 +27,7 @@ const CodeEditor = (props) => {
     setTestLoad(true);
     axios
       .post(`${domain}/run`, {
-        code: code,
+        code: props.vl,
         language: codeLanguage,
         userInput: userInput,
         submissionType: "test",
@@ -74,9 +74,9 @@ const CodeEditor = (props) => {
               })}
             </DropdownButton>
             <Editor
-              code={code}
+              code={props.vl}
               languageMode={codeMirrorMode}
-              onChange={setCode}
+              onChange={props.hcg}
             />
             {TestLoad ? (
               <>
