@@ -44,10 +44,19 @@ need to use a separate tool or device for audio communication with a peer.
 ![image 1](/virtual-expo/assets/img/SIG/img1.jpg)
 
 
-## Heading 1
+## Frontend
+
+The frontend is what users interact with. This is designed using ReactJS.
 
 
-## Heading 2
+## WebRTC
+
+WebRTC (Web Real-Time Communication) is a free and open-source project providing web browsers and mobile applications with real-time communication (RTC) via application programming interfaces (APIs). It allows audio and video communication to work inside web pages by allowing direct peer-to-peer communication, eliminating the need to install plugins or download native apps
+
+## Backend Server
+
+For handling of adding users to different rooms and initiating the first
+connection we have used golang to build a server.
 
 
 ### Subheading 2.1
@@ -65,7 +74,7 @@ need to use a separate tool or device for audio communication with a peer.
 #### Subsubheading 2.2.1
 
 
-## Heading 3
+## CRDT
 
 
 ## Conclusion
