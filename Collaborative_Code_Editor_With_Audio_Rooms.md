@@ -3,9 +3,9 @@ layout: post
 title: "Collaborative Code Editor With Audio Rooms"
 description: "A website that allows you to collaboratively code"
 categories: compsoc
-thumbnail: "filename.jpg"
+thumbnail: "thumb.jpg"
 year: 2022
-gmeet: "https://meet.google.com/invalid"
+gmeet: "https://meet.google.com/bxf-mdwr-opd"
 ---
 
 ### Mentors
