@@ -84,6 +84,12 @@ func JoinCall(c *gin.Context) {
 	log.Println("Adding into roomId: ", roomId)
 	AllRooms.InsertIntoRoom(roomId, false, ws)
 
+	var idMsg broadcastMsg
+	idMsg.Message = make(map[string]interface{})
+	idMsg.Message["id"] = AllRooms.GetUserId(roomId)
+
+	ws.WriteJSON(&idMsg.Message)
+
 	for {
 		var msg broadcastMsg
 

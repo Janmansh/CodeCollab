@@ -7,13 +7,23 @@ import * as Automerge from 'automerge';
 import CodeEditor from "./CodeEditor";
 import NavbarComponent from "./Navbar";
 import { useState } from 'react';
+import Audios from './Audios';
+
+function useForceUpdate(){
+    const [value, setValue] = useState(0); // integer state
+    return () => setValue(value => value + 1); // update the state to force render
+}
 
 function Room() {
     let { roomId } = useParams();
+
+    const forceUpdate = useForceUpdate();
     
     const userAudio = useRef();
+    const thisId = useRef();
     const userStream = useRef();
-    const partnerAudio = useRef();
+    let [partnerAudio, setPartnerAudio] = useState({dummy: true, arr: []});
+    console.log("First", partnerAudio);
     const peerRef = useRef();
     const webSocketRef = useRef();
 
@@ -51,6 +61,8 @@ function Room() {
     }
 
     useEffect(() => {
+        peerRef.current = {};
+
         openMic().then((stream) => {
             userAudio.current.srcObject = stream;
             userStream.current = stream;
@@ -59,44 +71,54 @@ function Room() {
         webSocketRef.current = new WebSocket(`ws://localhost:8080/join?roomId=${roomId}`);
 
         webSocketRef.current.addEventListener("open", () => {
-            webSocketRef.current.send(JSON.stringify({ join: true }));
+            console.log("Web socket open");
         });
 
         webSocketRef.current.addEventListener("message", async (e) => {
             const message = JSON.parse(e.data);
 
-            if(message.join) {
-                callUser();
+            if(message.toId && message.toId !== thisId.current) {
+                return;
             }
-            
+            if(message.join) {
+                callUser(message.id);
+            }
+            else
             if(message.offer) {
                 console.log("Recieved offer");
-                handleOffer(message.offer);
+                handleOffer(message.offer, message.id);
             }
-
+            else
             if(message.answer) {
-                console.log("Received answer");
-                peerRef.current.setRemoteDescription(new RTCSessionDescription(message.answer));
+                console.log("Received answer", message.id);
+                peerRef.current[message.id].setRemoteDescription(new RTCSessionDescription(message.answer));
             }
-
+            else
             if(message.iceCandidate) {
                 console.log("Recieving and adding ICE Candidate");
                 try {
-                    await peerRef.current.addIceCandidate(message.iceCandidate);
+                    await peerRef.current[message.id].addIceCandidate(message.iceCandidate);
                 } catch (err) {
                     console.log("Error adding ICE Candidate: ", err);
                 }
             }
-
+            else
             if(message.changes) {
                 const ar = Uint8Array.from(message.changes.split(',').map(x => Number(x)));
-                console.log("Recieved doc: ", message.changes, ": - ", ar);
+                // console.log("Recieved doc: ", message.changes, ": - ", ar);
 
                 let newDoc = Automerge.load(ar);
 
                 doc.current = Automerge.merge(doc.current, newDoc);
 
                 setCodeC(doc.current.code);
+            }
+            else
+            if(message.id) {
+                console.log("Setting id", message.id);
+                thisId.current = message.id;
+                console.log("Sending join message");
+                webSocketRef.current.send(JSON.stringify({ id: thisId.current, join: true }));
             }
         });
 
@@ -107,37 +129,39 @@ function Room() {
     const sendDoc = () => {
         let changes = Automerge.save(doc.current)
 
-        console.log(changes);
+        // console.log(changes);
 
-        webSocketRef.current.send(JSON.stringify({ changes: String(changes) }));
+        webSocketRef.current.send(JSON.stringify({ id: thisId.current, changes: String(changes) }));
     };
 
-    const handleOffer = async (offer) => {
+    const handleOffer = async (offer, id) => {
         console.log("Creating answer");
-        peerRef.current = createPeer();
+        peerRef.current[id] = createPeer(id);
+        console.log("Set at id", id);
 
-        await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
+        await peerRef.current[id].setRemoteDescription(new RTCSessionDescription(offer));
 
         userStream.current.getTracks().forEach(track => {
-            peerRef.current.addTrack(track, userStream.current);
+            peerRef.current[id].addTrack(track, userStream.current);
         });
 
-        const answer = await peerRef.current.createAnswer();
-        await peerRef.current.setLocalDescription(answer);
+        const answer = await peerRef.current[id].createAnswer();
+        await peerRef.current[id].setLocalDescription(answer);
 
-        webSocketRef.current.send(JSON.stringify({ answer }));
+        webSocketRef.current.send(JSON.stringify({id: thisId.current, toId: id, answer }));
     }
 
-    const callUser = () => {
+    const callUser = (id) => {
         console.log("WebRTC connnecting latest joinee");
-        peerRef.current = createPeer();
+        peerRef.current[id] = createPeer(id);
+        console.log("set at id", id);
 
         userStream.current.getTracks().forEach(track => {
-            peerRef.current.addTrack(track, userStream.current);
+            peerRef.current[id].addTrack(track, userStream.current);
         });
     };
 
-    const createPeer = () => {
+    const createPeer = (id) => {
         console.log("Creating P2P Conn");
         const peer = new RTCPeerConnection({
             iceServers: [
@@ -145,39 +169,45 @@ function Room() {
             ]
         });
 
-        peer.onnegotiationneeded = handleNegotiationNeeded;
-        peer.onicecandidate = handleIceCandidateEven;
-        peer.ontrack = handleTrackEvent;
+        peer.onnegotiationneeded = ((e) => handleNegotiationNeeded(id));
+        peer.onicecandidate = ((e) => handleIceCandidateEven(e, id));
+        peer.ontrack = ((e) => handleTrackEvent(id, e));
 
         return peer;
     };
 
-    const handleNegotiationNeeded = async () => {
+    const handleNegotiationNeeded = async (id) => {
         console.log("Creating offer");
 
         try {
-            const myOffer = await peerRef.current.createOffer();
-            await peerRef.current.setLocalDescription(myOffer);
+            const myOffer = await peerRef.current[id].createOffer();
+            await peerRef.current[id].setLocalDescription(myOffer);
 
-            webSocketRef.current.send(JSON.stringify({ offer: myOffer }));
+            webSocketRef.current.send(JSON.stringify({ id: thisId.current, toId: id, offer: myOffer }));
             
         } catch (err) {
             console.log("Error during offer creation: ", err);
         }
     }
 
-    const handleIceCandidateEven = (e) => {
+    const handleIceCandidateEven = (e, id) => {
         console.log("Found ICE Candidate");
         if(e.candidate) {
             console.log(e.candidate);
-            webSocketRef.current.send(JSON.stringify({iceCandidate: e.candidate}));
+            webSocketRef.current.send(JSON.stringify({id: thisId.current, toId: id, iceCandidate: e.candidate}));
         }
     }
 
-    const handleTrackEvent = (e) => {
+    const handleTrackEvent = (id, e) => {
         console.log("Recieved tracks");
-        partnerAudio.current.srcObject = e.streams[0]
+        partnerAudio.arr.push(e.streams[0]);
+        partnerAudio.dummy = !partnerAudio.dummy;
+        setPartnerAudio(partnerAudio);
+        console.log("aaaa-", partnerAudio);
+        // forceUpdate();
     }
+
+    console.log("UPdated");
 
     return ( 
         <>
@@ -186,8 +216,9 @@ function Room() {
             <CodeEditor vl={codeC} hcg={handleChange}/>
         </div>
         <div>
-            <audio autoPlay={true} controls={true} ref={userAudio}></audio>
-            <audio autoPlay={true} controls={true} ref={partnerAudio}></audio>
+            <audio autoPlay={false} controls={true} ref={userAudio}></audio>
+            {/* <audio autoPlay={true} controls={true} ref={partnerAudio}></audio> */}
+            <Audios streams={partnerAudio}/>
         </div>
         </>
      );

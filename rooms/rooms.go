@@ -16,11 +16,13 @@ type Participant struct {
 type RoomMap struct {
 	Mutex sync.RWMutex
 	Map map[string][]Participant
+	IdMap map[string]int
 }
 
 // Init room map
 func (r *RoomMap) Init() {
 	r.Map = make(map[string][]Participant)
+	r.IdMap = make(map[string]int)
 }
 
 // Get participants in room id
@@ -46,6 +48,7 @@ func (r *RoomMap) CreateRoom() string {
 	}
 
 	r.Map[roomId] = []Participant{}
+	r.IdMap[roomId] = 0
 
 	return roomId
 }
@@ -71,6 +74,7 @@ func (r *RoomMap) InsertIntoRoom(roomId string, host bool, conn *websocket.Conn)
 	p := Participant{host, conn}
 
 	r.Map[roomId] = append(r.Map[roomId], p)
+	r.IdMap[roomId]++
 } 
 
 func (r *RoomMap) DeletePosFromRoom(roomId string, i int) {
@@ -102,4 +106,11 @@ func (r *RoomMap) DeleteRoom(roomId string) {
 	defer r.Mutex.Unlock()
 
 	delete(r.Map, roomId)
+}
+
+func (r *RoomMap) GetUserId(roomId string) int {
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
+
+	return r.IdMap[roomId]
 }
