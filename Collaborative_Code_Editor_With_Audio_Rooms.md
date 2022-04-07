@@ -11,7 +11,6 @@ gmeet: "https://meet.google.com/invalid"
 
 ### Mentors
 
-
 - Janmansh Agarwal
 - Srujan Bharadwaj
 - Aryaman
@@ -19,19 +18,27 @@ gmeet: "https://meet.google.com/invalid"
 
 ### Members
 
-
 - Tejaswi Hegde
 - Radhika Chhabra
 
 
 ## Aim
 
-We aim to create a website that allows users to create a room where users are able to code (collaborate) with others while talking.
+We aim to:
+- create a website with a code editor
+- users can create a room and others are able to join the room
+- voice and video and text chat functions
+- the code editor is synced accross the users in a room
 
 ## Introduction
 
+Collaborative code editors are very useful in the software industry. They can be used for
+pair programming, debugging, interviews, etc.
 
-Some intro content
+Currently, we can find a lot of collaborative code editors online. However, there aren’t
+many code editors which have a built-in audio feature. In this project, we aim to build a live
+code editor and have a feature of audio rooms within the editor. Hence, there won’t be a
+need to use a separate tool or device for audio communication with a peer.
 
 
 ![image 1](/virtual-expo/assets/img/SIG/img1.jpg)
