@@ -30,6 +30,8 @@ func main() {
 	r := gin.Default()
 	r.Use(CORSMiddleware())
 
+	r.POST("/run", endpoints.RunProgram)
+
 	r.GET("/create", endpoints.CreateNewCall)
 	r.GET("/join", endpoints.JoinCall)
 
