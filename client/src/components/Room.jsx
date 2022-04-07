@@ -13,7 +13,7 @@ function getTags(streams) {
     console.log("In AUdio", streams);
 
     for (let i = 0; i < streams.arr.length; i++) {
-        tags.push(<audio autoPlay={true} controls={true} ref={audio => {audio.srcObject = streams.arr[i] }}></audio>);        
+        tags.push(<audio autoPlay={true} controls={true} ref={audio => {if(!audio) return; audio.srcObject = streams.arr[i]}}></audio>);
     }
 
     return tags;
@@ -137,6 +137,7 @@ function Room() {
         // console.log(changes);
         if(webSocketRef.current.readyState === 1)
             webSocketRef.current.send(JSON.stringify({ id: thisId.current, changes: String(changes) }));
+        
     };
 
     const handleOffer = async (offer, id) => {
@@ -205,9 +206,9 @@ function Room() {
 
     const handleTrackEvent = (id, e) => {
         console.log("Recieved tracks");
-        partnerAudio.arr.push(e.streams[0]);
-        partnerAudio.dummy = !partnerAudio.dummy;
-        setPartnerAudio(partnerAudio);
+        let cpy = { ...partnerAudio };
+        cpy.arr.push(e.streams[0]);
+        setPartnerAudio(cpy);
         console.log("aaaa-", partnerAudio);
         // forceUpdate();
     }
@@ -222,7 +223,8 @@ function Room() {
             <CodeEditor vl={codeC} hcg={handleChange}/>
         </div>
         <div>
-            <audio autoPlay={false} controls={true} ref={userAudio}></audio>
+            {console.log("Updating")}
+            <audio autoPlay={true} controls={true} ref={userAudio}></audio>
             {/* <audio autoPlay={true} controls={true} ref={partnerAudio}></audio> */}
             {getTags(partnerAudio)}
         </div>
