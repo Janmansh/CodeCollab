@@ -7,17 +7,20 @@ import * as Automerge from 'automerge';
 import CodeEditor from "./CodeEditor";
 import NavbarComponent from "./Navbar";
 import { useState } from 'react';
-import Audios from './Audios';
 
-function useForceUpdate(){
-    const [value, setValue] = useState(0); // integer state
-    return () => setValue(value => value + 1); // update the state to force render
+function getTags(streams) {
+    const tags = [];
+    console.log("In AUdio", streams);
+
+    for (let i = 0; i < streams.arr.length; i++) {
+        tags.push(<audio autoPlay={true} controls={true} ref={audio => {audio.srcObject = streams.arr[i] }}></audio>);        
+    }
+
+    return tags;
 }
 
 function Room() {
     let { roomId } = useParams();
-
-    const forceUpdate = useForceUpdate();
     
     const userAudio = useRef();
     const thisId = useRef();
@@ -26,6 +29,7 @@ function Room() {
     console.log("First", partnerAudio);
     const peerRef = useRef();
     const webSocketRef = useRef();
+    const countRef = useRef();
 
     const [codeC, setCodeC] = useState("");
 
@@ -62,6 +66,7 @@ function Room() {
 
     useEffect(() => {
         peerRef.current = {};
+        countRef.current = 0;
 
         openMic().then((stream) => {
             userAudio.current.srcObject = stream;
@@ -130,8 +135,8 @@ function Room() {
         let changes = Automerge.save(doc.current)
 
         // console.log(changes);
-
-        webSocketRef.current.send(JSON.stringify({ id: thisId.current, changes: String(changes) }));
+        if(webSocketRef.current.readyState === 1)
+            webSocketRef.current.send(JSON.stringify({ id: thisId.current, changes: String(changes) }));
     };
 
     const handleOffer = async (offer, id) => {
@@ -207,7 +212,8 @@ function Room() {
         // forceUpdate();
     }
 
-    console.log("UPdated");
+    console.log("Updated", countRef.current);
+    countRef.current++;
 
     return ( 
         <>
@@ -218,7 +224,7 @@ function Room() {
         <div>
             <audio autoPlay={false} controls={true} ref={userAudio}></audio>
             {/* <audio autoPlay={true} controls={true} ref={partnerAudio}></audio> */}
-            <Audios streams={partnerAudio}/>
+            {getTags(partnerAudio)}
         </div>
         </>
      );

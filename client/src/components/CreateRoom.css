@@ -1,0 +1,51 @@
+div.createRoom {
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(77, 7, 77);
+    display: flex;
+}
+
+div.container {
+    margin: auto;
+    width: fit-content;
+    height: fit-content;
+}
+
+.mainHeading {
+    color: yellow;
+    font-size: 6rem;
+    width: fit-content;
+}
+
+div.crbDiv {
+    margin: 5% auto;
+    width: fit-content;
+}
+
+#createButton {
+    font-size: 2.7rem;
+    border: none;
+    background-color: rgb(30, 194, 30);
+    border-radius: 20px;
+    padding: 10px;
+}
+
+div.joiner {
+    margin: 5% 15%;
+    width: 100%;
+    height: 40px;
+}
+
+#roomInp {
+    border: none;
+    width: 60%;
+    height: 100%;
+    margin-right: 15px;
+}
+
+#joinButton {
+    border: none;
+    background-color: rgb(184, 48, 48);
+    font-size: 1.7rem;
+}
+
