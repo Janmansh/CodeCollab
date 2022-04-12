@@ -127,6 +127,8 @@ function Room() {
             }
         });
 
+        userAudio.current.volume = 0;
+
         setInterval(sendDoc, 3000);
 
     }, []);
@@ -224,7 +226,7 @@ function Room() {
         </div>
         <div>
             {console.log("Updating")}
-            <audio autoPlay={true} controls={true} ref={userAudio}></audio>
+            <audio autoPlay={true} controls={true} ref={userAudio} style={{display: "none"}}></audio>
             {/* <audio autoPlay={true} controls={true} ref={partnerAudio}></audio> */}
             {getTags(partnerAudio)}
         </div>
