@@ -6,6 +6,6 @@ import (
 
 func GetIndex(c *gin.Context) {
 
-	c.HTML(200, "index.html", nil)
+	c.HTML(200, "../client/build/index.html", nil)
 
 }
